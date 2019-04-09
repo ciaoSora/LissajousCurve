@@ -11,19 +11,21 @@ extern const int HEIGHT;
 static LPD3DXLINE pLine;
 
 /* position of the ORIGIN under screen coordinate*/
-float ORIGIN_X = WIDTH / 2, ORIGIN_Y = HEIGHT / 2;
+float ORIGIN_X = WIDTH / 3, ORIGIN_Y = HEIGHT / 2;
 
 /* FPR = Frames Per Round */
-static int PERIOD = 6000, FPS = 100;
+static int PERIOD = 5000, FPS = 100;
 static int FPR = PERIOD * FPS / 1000;
 static D3DXVECTOR2 * data;
 
 /* parameters for A * cos(omega * t + phi) , DPF = Dots Per Frame  */
 static float A1 = WIDTH * 0.25f, A2 = HEIGHT * 0.45f;
-static int omega1 = 3, omega2 = 2;
+static int omega1 = 3, omega2 = 5;
 const float STD_BASE = sqrt(A1 * A1 + A2 * A2);
 const int STD_DPF = 60;
 static int DPF = sqrt(A1 * A1 * omega1 * omega1 + A2 * A2 * omega2 * omega2) * STD_DPF / STD_BASE;
+
+static bool paused;
 
 void convert(D3DXVECTOR2 * a, int n) {
 	for (int i = 0; i < n; ++i) {
@@ -70,7 +72,12 @@ void Lissajou::DrawLissajou() {
 	static int acc = 0;
 
 	curt = timeGetTime();
-	acc += (curt - last);
+	/*char s[30];
+	sprintf_s(s, "%d\n", curt);
+	::OutputDebugString(s);*/
+	if (!paused) {
+		acc += (curt - last);
+	}
 	last = curt;
 	
 	frame_id = (frame_id + acc * FPS / 1000) % FPR;
@@ -106,4 +113,16 @@ void Lissajou::SetOmega(int omg1, int omg2) {
 	omega1 = omg1;
 	omega2 = omg2;
 	DPF = sqrt(A1 * A1 * omega1 * omega1 + A2 * A2 * omega2 * omega2) * STD_DPF / STD_BASE;
+}
+
+void Lissajou::Pause() {
+	paused = true;
+}
+
+void Lissajou::Play() {
+	paused = false;
+}
+
+bool Lissajou::isPausing() {
+	return paused;
 }

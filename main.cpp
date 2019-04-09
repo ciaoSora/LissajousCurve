@@ -1,5 +1,6 @@
 #include <windows.h>
 #include <windowsx.h>
+#include <thread>
 #include "Utility.h"
 #include "Lissajou.h"
 
@@ -73,12 +74,32 @@ void cleanD3D() {
 // this is the main message handler for the program
 LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	switch (message) {
+	case WM_KEYDOWN: {
+		switch (wParam) {
+		case VK_SPACE: {
+			if (Lissajou::isPausing()) {
+				Lissajou::Play();
+			}
+			else {
+				Lissajou::Pause();
+			}
+			break;
+		}
+		}
+		break;
+	}
 	case WM_DESTROY: {
 		PostQuitMessage(0);
 		break;
 	}
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);
+	}
+}
+
+void keep_rendering() {
+	while (true) {
+		render_frame();
 	}
 }
 
@@ -111,6 +132,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	// set up and initialize Direct3D
 	initD3D(hwnd);
+	std::thread threa(keep_rendering);
 
 	// enter the main loop
 	while (true) {
@@ -124,9 +146,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 		}
-		else {
+		/*else {
 			render_frame();
-		}
+		}*/
 	}
 
 	// clean up DirectX and COM
