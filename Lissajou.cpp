@@ -14,13 +14,14 @@ static LPD3DXLINE pLine;
 float ORIGIN_X = WIDTH / 3, ORIGIN_Y = HEIGHT / 2;
 
 /* FPR = Frames Per Round */
-static int PERIOD = 5000, FPS = 100;
+static int PERIOD = 4000, FPS = 100;
 static int FPR = PERIOD * FPS / 1000;
 static D3DXVECTOR2 * data;
+static D3DXVECTOR2 bkg[42 * 2];
 
 /* parameters for A * cos(omega * t + phi) , DPF = Dots Per Frame  */
 static float A1 = WIDTH * 0.25f, A2 = HEIGHT * 0.45f;
-static int omega1 = 3, omega2 = 5;
+static int omega1 = 1, omega2 = 1;
 const float STD_BASE = sqrt(A1 * A1 + A2 * A2);
 const int STD_DPF = 60;
 static int DPF = sqrt(A1 * A1 * omega1 * omega1 + A2 * A2 * omega2 * omega2) * STD_DPF / STD_BASE;
@@ -48,11 +49,29 @@ void updateData() {
 	if (data) {
 		delete[] data;
 	}
-	data = new D3DXVECTOR2[FPR * (DPF + 1)];
-	for (int i = 0; i < FPR; ++i) {
-		calculate(data + i * (DPF + 1), DPF, i * D3DX_PI * 2 / FPR);
-		convert(data + i * (DPF + 1), DPF + 1);
+	data = new D3DXVECTOR2[DPF + 1];
+}
+
+void updateBackground() {
+	const int half = ((sizeof(bkg) / sizeof(D3DXVECTOR2) / 4) - 1) / 2;
+	float unit = A1 / half;
+
+	int cnt = 0;
+	for (int i = -half; i <= half; ++i) {
+		bkg[cnt].x = bkg[cnt + 1].x = i * unit;
+		bkg[cnt].y = A2;
+		bkg[cnt + 1].y = -A2;
+		cnt += 2;
 	}
+	unit = A2 / half;
+	for (int j = -half; j <= half; ++j) {
+		bkg[cnt].x = A1;
+		bkg[cnt + 1].x = -A1;
+		bkg[cnt].y = bkg[cnt + 1].y = j * unit;
+		cnt += 2;
+	}
+
+	convert(bkg, (sizeof(bkg) / sizeof(D3DXVECTOR2)));
 }
 
 void Lissajou::Init() {
@@ -60,31 +79,44 @@ void Lissajou::Init() {
 	pLine->SetAntialias(true);
 
 	updateData();
+	updateBackground();
+	
 }
 
 void Lissajou::DrawBackground() {
-	
+	pLine->SetWidth(2.0f);
+	const int half = ((sizeof(bkg) / sizeof(D3DXVECTOR2) / 4) - 1) / 2;
+	for (int i = 0; i <= (half * 2 + 1) * 2; ++i) {
+		pLine->Draw(bkg + 2 * i, 2, D3DCOLOR_XRGB(0, 100, 0));
+	}
 }
 
 void Lissajou::DrawLissajou() {
+	static float delta_phi = 0.0f;
 	static DWORD last = timeGetTime(), curt;
-	static int frame_id = 0;
-	static int acc = 0;
-
+	
 	curt = timeGetTime();
-	/*char s[30];
+	char s[30];
 	sprintf_s(s, "%d\n", curt);
-	::OutputDebugString(s);*/
+	OutputDebugString(s);
 	if (!paused) {
-		acc += (curt - last);
+		delta_phi += (curt - last) * D3DX_PI * 2 / PERIOD;
+	}
+	if (delta_phi > D3DX_PI * 2) {
+		delta_phi -= D3DX_PI * 2;
 	}
 	last = curt;
-	
-	frame_id = (frame_id + acc * FPS / 1000) % FPR;
-	acc %= (1000 / FPS);
 
+	float t;
+	for (int i = 0; i < DPF; ++i) {
+		t = i * D3DX_PI * 2 / DPF;
+		data[i].x = A1 * cos(omega1 * t + delta_phi);
+		data[i].y = A2 * cos(omega2 * t);
+	}
+	data[DPF] = data[0];
+	convert(data, DPF + 1);
 	pLine->SetWidth(5.0f);
-	pLine->Draw(data + frame_id * (DPF + 1), DPF + 1, D3DCOLOR_XRGB(0, 255, 0));
+	pLine->Draw(data, DPF + 1, D3DCOLOR_XRGB(0, 255, 0));
 }
 
 void Lissajou::Clean() {

@@ -3,6 +3,7 @@
 #include <thread>
 #include "Utility.h"
 #include "Lissajou.h"
+#include "UIController.h"
 
 const char APP_NAME[] = "Lissajou";
 extern const int WIDTH = 800, HEIGHT = 600;
@@ -154,6 +155,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	// clean up DirectX and COM
 	cleanD3D();
 #ifdef _DEBUG
+	char * test_leak = new char[666];
 	_CrtDumpMemoryLeaks();
 #endif // _DEBUG
 	return msg.wParam;
