@@ -9,7 +9,16 @@ namespace Lissajou {
 
 	void SetPeriod(int new_period);
 	void SetFPS(int new_fps);
-	void SetOmega(int omg1, int omg2);
+	void SetOmega1(int omg);
+	void SetOmega2(int omg);
+	int GetPeriod();
+	float GetA1();
+	float GetA2();
+	int GetOmega1();
+	int GetOmega2();
+	float GetOriginX();
+	float GetOriginY();
+	float GetDeltaPhi();
 	
 	void Pause();
 	void Play();

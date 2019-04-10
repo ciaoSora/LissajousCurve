@@ -3,5 +3,6 @@
 #include "Lissajou.h"
 
 namespace UIController {
-	
+	void Init();
+	void Draw();
 }

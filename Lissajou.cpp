@@ -22,6 +22,7 @@ static D3DXVECTOR2 bkg[42 * 2];
 /* parameters for A * cos(omega * t + phi) , DPF = Dots Per Frame  */
 static float A1 = WIDTH * 0.25f, A2 = HEIGHT * 0.45f;
 static int omega1 = 1, omega2 = 1;
+static float delta_phi = 0.0f;
 const float STD_BASE = sqrt(A1 * A1 + A2 * A2);
 const int STD_DPF = 60;
 static int DPF = sqrt(A1 * A1 * omega1 * omega1 + A2 * A2 * omega2 * omega2) * STD_DPF / STD_BASE;
@@ -92,7 +93,6 @@ void Lissajou::DrawBackground() {
 }
 
 void Lissajou::DrawLissajou() {
-	static float delta_phi = 0.0f;
 	static DWORD last = timeGetTime(), curt;
 	
 	curt = timeGetTime();
@@ -138,13 +138,22 @@ void Lissajou::SetFPS(int new_fps) {
 	FPR = FPR = PERIOD * FPS / 1000;
 }
 
-void Lissajou::SetOmega(int omg1, int omg2) {
-	if (omg1 <= 0 || omg2 <= 0) {
+void Lissajou::SetOmega1(int omg) {
+	if (omg <= 0 || omg > 40) {
 		return;
 	}
-	omega1 = omg1;
-	omega2 = omg2;
+	omega1 = omg;
 	DPF = sqrt(A1 * A1 * omega1 * omega1 + A2 * A2 * omega2 * omega2) * STD_DPF / STD_BASE;
+	updateData();
+}
+
+void Lissajou::SetOmega2(int omg) {
+	if (omg <= 0 || omg > 40) {
+		return;
+	}
+	omega2 = omg;
+	DPF = sqrt(A1 * A1 * omega1 * omega1 + A2 * A2 * omega2 * omega2) * STD_DPF / STD_BASE;
+	updateData();
 }
 
 void Lissajou::Pause() {
@@ -157,4 +166,36 @@ void Lissajou::Play() {
 
 bool Lissajou::isPausing() {
 	return paused;
+}
+
+float Lissajou::GetA1() {
+	return A1;
+}
+
+float Lissajou::GetA2() {
+	return A2;
+}
+
+int Lissajou::GetOmega1() {
+	return omega1;
+}
+
+int Lissajou::GetOmega2() {
+	return omega2;
+}
+
+float Lissajou::GetOriginX() {
+	return ORIGIN_X;
+}
+
+float Lissajou::GetOriginY() {
+	return ORIGIN_Y;
+}
+
+float Lissajou::GetDeltaPhi() {
+	return delta_phi;
+}
+
+int Lissajou::GetPeriod() {
+	return PERIOD;
 }

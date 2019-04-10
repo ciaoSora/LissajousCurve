@@ -15,6 +15,7 @@ LPDIRECT3DDEVICE9 d3ddev;						// the pointer to the device class
 												// this is the function that puts the 3D models into video RAM
 void init_graphics() {
 	Lissajou::Init();
+	UIController::Init();
 }
 
 // this function initializes and prepares Direct3D for use
@@ -59,6 +60,7 @@ void render_frame() {
 
 	Lissajou::DrawBackground();
 	Lissajou::DrawLissajou();
+	UIController::Draw();
 
 	d3ddev->EndScene();
 
@@ -86,6 +88,45 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 			}
 			break;
 		}
+		case VK_RIGHT:
+		case 'D': {
+			Lissajou::SetOmega1(Lissajou::GetOmega1() + 1);
+			break;
+		}
+		case VK_LEFT:
+		case 'A': {
+			Lissajou::SetOmega1(Lissajou::GetOmega1() - 1);
+			break;
+		}
+		case VK_UP:
+		case 'W': {
+			Lissajou::SetOmega2(Lissajou::GetOmega2() + 1);
+			break;
+		}
+		case VK_DOWN:
+		case 'S': {
+			Lissajou::SetOmega2(Lissajou::GetOmega2() - 1);
+			break;
+		}
+		}
+		break;
+	}
+	case WM_LBUTTONDOWN: {
+		if (Lissajou::isPausing()) {
+			Lissajou::Play();
+		}
+		else {
+			Lissajou::Pause();
+		}
+		break;
+	}
+	case WM_MOUSEWHEEL: {
+		static const double scale = 1.5;
+		if ((short)HIWORD(wParam) > 0) {
+			Lissajou::SetPeriod(Lissajou::GetPeriod() / scale);
+		}
+		else {
+			Lissajou::SetPeriod(Lissajou::GetPeriod() * scale);
 		}
 		break;
 	}
